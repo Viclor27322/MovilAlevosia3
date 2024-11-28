@@ -1,9 +1,11 @@
-import React,{ useEffect } from 'react';
+import { useEffect, useContext, useState } from 'react';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import 'react-native-reanimated';
+import { AuthContext, AuthProvider } from '../src/context/AuthContext';
+import { Slot, useRouter } from 'expo-router'; // Asegúrate de importar Slot
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -12,6 +14,8 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const router = useRouter();
+  const { user } = useContext(AuthContext) ?? {}; // Verifica que no sea undefined
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -22,19 +26,23 @@ export default function RootLayout() {
     }
   }, [loaded]);
 
+  useEffect(() => {
+    // Solo navega si el usuario no está autenticado
+    if (loaded && !user) {
+      router.replace('/login'); // Redirige si no hay usuario autenticado
+    }
+  }, [loaded, user]);
   if (!loaded) {
     return null;
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-        <Stack.Screen name="PoliticaPrivacidad" options={{ presentation: 'modal', headerShown: false }} />
-        
-      </Stack>
-    </ThemeProvider>
+    <AuthProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          {/* El Slot aquí permite que se rendericen las rutas dentro del stack */}
+          <Slot />
+        </ThemeProvider>
+      </AuthProvider>
   );
 }
 

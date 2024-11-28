@@ -1,93 +1,89 @@
-import React from 'react';
-import { View, StyleSheet, Image, Text, ScrollView, Button, TouchableOpacity } from 'react-native';
-// Importa el componente de las tabs
-import TabLayout from '../(tabs)/_layout';
+import React, { useState, useEffect } from "react";
+import { View, StyleSheet, Image, Text, ScrollView, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
+
 // Importa el logo
- // Cambia la ruta si es necesario
- const logo = require('../../assets/images/logo.png'); 
-// Datos de ejemplo para las tarjetas de prendas
-const products = [
-    { 
-        id: 1, 
-        name: 'Jeans Levis', 
-        price: 950, 
-        description: 'Pantalon de Mezclilla para hombres', 
-        image: require('../../assets/images/levis_jeans.jpg') 
-    },
-    { 
-        id: 2, 
-        name: 'Navaja Suiza', 
-        price: 860, 
-        description: 'Navaja todo en uno multifuncional', 
-        image: require('../../assets/images/navaja_suiza.jpg') 
-    },
-    {
-        id: 3, 
-        name: 'Chaqueta amarilla', 
-        price: 500, 
-        description: 'Chaqueta amarilla invernal estilo audaz y vibrante.', 
-        image: require('../../assets/images/LMYNL_CD.jpg') 
-    },
-    {
-        id: 4, 
-        name: 'Zurg Men', 
-        price: 280, 
-        description: 'Playera con estampado del personaje Zurg', 
-        image: require('../../assets/images/zurg_men.jpg') 
-    },
-    {
-        id: 5, 
-        name: 'Playera Bugs Bunny', 
-        price: 640, 
-        description: 'Playera con un estampado de Bugs Bunny', 
-        image: require('../../assets/images/bugs_bunny.jpg') 
-    },
-    {
-        id: 6, 
-        name: 'Playera FUN Tenis', 
-        price: 640, 
-        description: 'Playera roja con diseño cosido para hombres', 
-        image: require('../../assets/images/fun_tenis.jpg') 
-    },
-    // Agrega más productos aquí
-];
+const logo = require('../../assets/images/logo.png'); 
+
+type Product = {
+    ID_Prenda: string;
+    Nombre: string;
+    CodBarras: string;
+    Descripcion: string;
+    ID_Marca: string;
+    ID_Color: string;
+    ID_Categoria: string;
+    ID_TallaPantalon: string;
+    ID_TallaPlayera: string;
+    ID_Estilo: string;
+    ID_Tipo: string;
+    Precio: string;
+    Imagen: string;
+};
 
 export default function Hombres() {
     const isLoggedIn = false; // Variable para simular si el usuario está logueado o no
+    const [productos, setProductos] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false); // Estado para controlar la recarga
+
+    useEffect(() => {
+        obtenerProductos();
+    }, []);
+
+    const obtenerProductos = async () => {
+        try {
+            setLoading(true); // Activa el indicador de carga inicial
+            const response = await fetch("https://alev-backend-vercel.vercel.app/hombres");
+            const data = await response.json();
+            setProductos(data);
+        } catch (error) {
+            console.error("Error al obtener los productos:", error);
+        } finally {
+            setLoading(false); // Desactiva el indicador de carga inicial
+        }
+    };
+
+    const onRefresh = async () => {
+        setRefreshing(true); // Activa el indicador de recarga
+        await obtenerProductos(); // Recarga los datos
+        setRefreshing(false); // Desactiva el indicador de recarga
+    };
 
     return (
-        <ScrollView style={styles.container}>
-            {/* Aquí inserta el logo */}
+        <ScrollView
+            style={styles.container}
+            refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+            }
+        >
             <Image
                 source={logo} // Usa el logo
                 style={styles.logo} // Aplica el estilo que desees
             />
 
-            {/* Aquí inserta el texto descriptivo */}
             <Text style={styles.description}>HOMBRES</Text>
 
-            {/* Aquí se agregan las tarjetas de presentación */}
-            <View style={styles.cardsContainer}>
-                {products.map(product => (
-                    <View key={product.id} style={styles.card}>
-                        <Image source={product.image} style={styles.cardImage} />
-                        <Text style={styles.cardTitle}>{product.name}</Text>
-                        <Text style={styles.cardDescription}>{product.description}</Text>
-                        <Text style={styles.cardPrice}>${product.price}</Text>
-
-                        {/* Mostrar un botón si el usuario no ha iniciado sesión */}
-                        {!isLoggedIn ? (
+            {loading ? (
+                <ActivityIndicator size="large" color="#007bff" />
+            ) : (
+                <View style={styles.cardsContainer}>
+                    {productos.map(product => (
+                        <View key={product.ID_Prenda} style={styles.card}>
+                            <Image
+                                source={{ uri: `https://alevosia.host8b.me/image/${product.Imagen}` }}
+                                style={styles.cardImage}
+                                resizeMode="cover"
+                            />
+                            <Text style={styles.cardTitle}>{product.Nombre}</Text>
+                            <Text style={styles.cardDescription}>{product.Descripcion}</Text>
+                            <Text style={styles.cardPrice}>${product.Precio}</Text>
                             <TouchableOpacity style={styles.loginButton}>
                                 <Text style={styles.loginButtonText}>Comprar</Text>
                             </TouchableOpacity>
-                        ) : (
-                            <Button title="Comprar" onPress={() => { /* acción de compra */ }} />
-                        )}
-                    </View>
-                ))}
-            </View>
-
-            <TabLayout />
+                        </View>
+                    ))}
+                </View>
+            )}
         </ScrollView>
     );
 }
@@ -156,11 +152,11 @@ const styles = StyleSheet.create({
         padding: 10,
         borderRadius: 5,
         marginTop: 10,
-      },
-      loginButtonText: {
+    },
+    loginButtonText: {
         color: '#fff',
         textAlign: 'center',
         fontSize: 14,
-        fontWeight: 'bold', // Añadí negrita al texto
-      },
+        fontWeight: 'bold',
+    },
 });

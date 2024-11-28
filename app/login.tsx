@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Image, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Entypo } from '@expo/vector-icons'; // Importa los iconos correctamente
+import useAuth from '../src/context/UseAuth';
 // Asegúrate de instalar @expo/vector-icons
-const logo = require('../../assets/images/logo.png'); 
+const logo = require('../assets/images/logo.png'); 
 
 const LoginForm = () => {
   const router = useRouter();
+  const { login } = useAuth(); // Usar la función login del contexto
 
   const handlePrivacyPolicyPress = () => {
     router.push({ pathname: '/Registro' });
@@ -24,14 +26,9 @@ const LoginForm = () => {
     return emailRegex.test(email);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!email || !password) {
       Alert.alert('Error', 'Por favor, complete todos los campos.');
-      return;
-    }
-
-    if (!validateEmail(email)) {
-      Alert.alert('Error', 'Por favor, ingrese un correo electrónico válido.');
       return;
     }
 
@@ -39,10 +36,35 @@ const LoginForm = () => {
       Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres.');
       return;
     }
-
-    // Todo está validado, redirigir al usuario
-    router.push({ pathname: '/HomeI' }); // Cambia '/Home' por '/Inicio' si es la ruta correcta
+    console.log(email);
+    console.log(password);
+    try {
+      const response = await fetch('https://alev-backend-vercel.vercel.app/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          loginUsuario: email,
+          loginContrasena: password,
+        }),
+      });
+  
+      const data = await response.json();
+      console.log(data);
+      if (data.message) {
+        Alert.alert('Error', data.message || 'Credenciales inválidas.');
+      } else {
+        Alert.alert('Éxito', 'Inicio de sesión exitoso.');
+        login(data);
+        router.replace('/(tabs)'); // Redirigir al área autenticada
+      }
+    } catch (error) {
+      console.error('Error al iniciar sesión:', error);
+      Alert.alert('Error', 'No se pudo conectar con el servidor.');
+    }
   };
+
 
   return (
     <View style={styles.container}>

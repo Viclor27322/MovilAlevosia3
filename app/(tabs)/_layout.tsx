@@ -1,45 +1,53 @@
-import React from 'react';
-// app/tabs/_layout.tsx
 import { Tabs } from 'expo-router';
+import React from 'react';
+
+import { TabBarIcon } from '@/components/navigation/TabBarIcon';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
-import  {TabBarIcon}  from '@/components/navigation/TabBarIcon';
-
-
-
-
-
-
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
 
-  
-
-  // ejemplo de colocar un texto sombreado
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: Colors[colorScheme ?? 'dark'].tint,
+        tabBarStyle: { backgroundColor: '#000000' }, // Fondo negro para la barra de pestañas
         headerShown: false,
       }}>
 
       {/* Pantalla inicial: Home */}
       <Tabs.Screen
-        name="index"
+          name="index"
+          options={{
+            title: 'Home',
+            tabBarIcon: ({ color, focused }) => (
+              <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
+            ),
+          }}
+        />
+
+      <Tabs.Screen
+        name="hombres"
         options={{
-          title: 'Home',
+          title: 'Hombres',
           tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'home' : 'home-outline'} color={color} />
+            <TabBarIcon name={focused ? 'rocket-sharp' : 'rocket-outline'} color={color} />
           ),
         }}
       />
-
-
+      <Tabs.Screen
+        name="mujeres"
+        options={{
+          title: 'Mujeres',
+          tabBarIcon: ({ color, focused }) => (
+            <TabBarIcon name={focused ? 'rose-sharp' : 'rose-outline'} color={color} />
+          ),
+        }}
+      />
       {/* Pantalla de Quiénes Somos */}
       <Tabs.Screen
-        name="QuienesSomos"
+        name="quienesSomos"
         options={{
           title: 'Quiénes Somos',
           tabBarIcon: ({ color, focused }) => (
@@ -47,18 +55,6 @@ export default function TabLayout() {
           ),
         }}
       />
-
-      {/* Pantalla de Login */}
-      <Tabs.Screen
-        name="Login"
-        options={{
-          title: 'Login',
-          tabBarIcon: ({ color, focused }) => (
-            <TabBarIcon name={focused ? 'log-in' : 'log-in-outline'} color={color} />
-          ),
-        }}
-      />
-
 
 
     </Tabs>
